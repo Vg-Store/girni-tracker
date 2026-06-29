@@ -1,0 +1,8 @@
+{
+"name":"Girni Ledger Pro",
+"short_name":"Girni",
+"display":"standalone",
+"start_url":"./",
+"theme_color":"#ffffff",
+"background_color":"#ffffff"
+}
