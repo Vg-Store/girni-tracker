@@ -1,126 +1,182 @@
 <!DOCTYPE html>
-<html>
+<html lang="mr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Girni Ledger Pro</title>
 <link rel="manifest" href="manifest.json">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-body{font-family:Arial,sans-serif;max-width:900px;margin:auto;padding:12px}
-.card{border:1px solid #ddd;border-radius:10px;padding:12px;margin:10px 0}
-input,button,select{padding:8px;margin:4px}
+body{font-family:Arial,sans-serif;background:#f4f4f4;max-width:900px;margin:auto;padding:10px}
+.card{background:#fff;border-radius:12px;padding:12px;margin:10px 0;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+input,button,select{width:100%;padding:12px;margin:5px 0;box-sizing:border-box}
+button{border:none;border-radius:8px;background:#2e7d32;color:#fff}
 table{width:100%;border-collapse:collapse}
 th,td{border:1px solid #ddd;padding:6px;text-align:center}
-h2,h3{margin:6px 0}
+.stat{font-size:18px;font-weight:bold}
 </style>
 </head>
 <body>
-<h2>🌾 Girni Ledger Pro</h2>
 
 <div class="card">
-<h3>Daily Entry</h3>
-<input type="date" id="date">
-<input type="number" id="wheat" placeholder="Wheat KG">
-<input type="number" id="jowar" placeholder="Jowar KG">
-<input type="number" id="mix" placeholder="Mix KG">
-<button onclick="saveEntry()">Save</button>
+<select id="lang" onchange="render()">
+<option value="mr">मराठी</option>
+<option value="en">English</option>
+</select>
 </div>
 
 <div class="card">
-<h3>Dashboard</h3>
+<h2 id="title">🌾 गिरणी लेजर</h2>
+<input type="date" id="date">
+<input type="number" id="kg" placeholder="एकूण किलो">
+<button onclick="addEntry()" id="saveBtn">नोंद जतन करा</button>
+<button onclick="undoLast()">↩ Undo Last Entry</button>
+</div>
+
+<div class="card">
 <div id="dashboard"></div>
 </div>
 
 <div class="card">
-<h3>Monthly Report</h3>
-<input type="month" id="month">
-<input type="number" id="electricity" placeholder="Electric Bill">
+<h3 id="billingTitle">Billing Cycle</h3>
+<input type="number" id="cycleDay" min="1" max="28" value="15" placeholder="Cycle Start Day">
+<input type="number" id="electric" placeholder="Electric Bill">
 <input type="number" id="other" placeholder="Other Expenses">
-<button onclick="monthlyReport()">Calculate</button>
+<button onclick="calcReport()">Calculate</button>
 <div id="report"></div>
 </div>
 
 <div class="card">
-<h3>History</h3>
+<h3>Daily KG Trend</h3>
+<canvas id="dailyChart"></canvas>
+</div>
+
+<div class="card">
+<h3>Monthly KG Trend</h3>
+<canvas id="monthlyChart"></canvas>
+</div>
+
+<div class="card">
 <button onclick="exportCSV()">Export CSV</button>
+<input type="file" onchange="importCSV(event)">
+</div>
+
+<div class="card">
 <table>
-<thead><tr><th>Date</th><th>KG</th><th>Revenue</th><th>Delete</th></tr></thead>
-<tbody id="history"></tbody>
+<thead><tr><th>Date</th><th>KG</th><th>₹</th><th>Edit</th><th>Delete</th></tr></thead>
+<tbody id="historyTable"></tbody>
 </table>
 </div>
 
 <script>
 const RATE=6;
-let entries=JSON.parse(localStorage.getItem("girni_entries")||"[]");
+let entries=JSON.parse(localStorage.getItem("girniData")||"[]");
+let dailyChart,monthlyChart;
 
-function saveData(){
- localStorage.setItem("girni_entries",JSON.stringify(entries));
- render();
+const txt={
+mr:{title:"🌾 गिरणी लेजर",save:"नोंद जतन करा"},
+en:{title:"🌾 Girni Ledger",save:"Save Entry"}
+};
+
+function save(){localStorage.setItem("girniData",JSON.stringify(entries));render();}
+
+function addEntry(){
+ const d=date.value;
+ const k=+kg.value;
+ if(!d||k<=0) return alert("Enter valid data");
+ entries.push({date:d,kg:k});
+ save();
+ kg.value="";
 }
 
-function saveEntry(){
- let date=document.getElementById("date").value;
- let kg=(+wheat.value||0)+(+jowar.value||0)+(+mix.value||0);
- if(!date||kg<=0){alert("Enter valid data");return;}
- entries.push({date,kg});
- saveData();
-}
-
-function deleteEntry(i){
- entries.splice(i,1);
- saveData();
+function undoLast(){if(entries.length){entries.pop();save();}}
+function del(i){entries.splice(i,1);save();}
+function editRow(i){
+ let v=prompt("KG",entries[i].kg);
+ if(v!==null){entries[i].kg=+v;save();}
 }
 
 function render(){
- history.innerHTML="";
- entries.forEach((e,i)=>{
- history.innerHTML+=`<tr>
+ let l=lang.value;
+ title.innerText=txt[l].title;
+ saveBtn.innerText=txt[l].save;
+
+ let totalKg=entries.reduce((a,b)=>a+b.kg,0);
+ dashboard.innerHTML=`<div class="stat">KG: ${totalKg}</div>
+ <div class="stat">Revenue: ₹${totalKg*RATE}</div>
+ <div class="stat">Entries: ${entries.length}</div>`;
+
+ historyTable.innerHTML="";
+ [...entries].reverse().forEach((e,r)=>{
+ let i=entries.length-1-r;
+ historyTable.innerHTML+=`<tr>
  <td>${e.date}</td>
  <td>${e.kg}</td>
  <td>₹${e.kg*RATE}</td>
- <td><button onclick="deleteEntry(${i})">Delete</button></td>
+ <td><button onclick="editRow(${i})">✏️</button></td>
+ <td><button onclick="del(${i})">🗑️</button></td>
  </tr>`;
  });
 
- let totalKg=entries.reduce((a,b)=>a+b.kg,0);
- let totalRevenue=totalKg*RATE;
-
- dashboard.innerHTML=`
- <b>Total KG:</b> ${totalKg}<br>
- <b>Total Revenue:</b> ₹${totalRevenue}<br>
- <b>Total Entries:</b> ${entries.length}`;
+ drawCharts();
 }
 
-function monthlyReport(){
- let m=document.getElementById("month").value;
- let elec=+electricity.value||0;
+function calcReport(){
+ let ele=+electric.value||0;
  let oth=+other.value||0;
+ let kgTotal=entries.reduce((a,b)=>a+b.kg,0);
+ let rev=kgTotal*RATE;
+ report.innerHTML=`Revenue ₹${rev}<br>Net Income ₹${rev-ele-oth}`;
+}
 
- let list=entries.filter(x=>x.date.startsWith(m));
- let kg=list.reduce((a,b)=>a+b.kg,0);
- let revenue=kg*RATE;
- let net=revenue-elec-oth;
+function drawCharts(){
+ let labels=entries.map(x=>x.date);
+ let vals=entries.map(x=>x.kg);
 
- report.innerHTML=`
- <p>Total KG: <b>${kg}</b></p>
- <p>Revenue: <b>₹${revenue}</b></p>
- <p>Electricity: <b>₹${elec}</b></p>
- <p>Other Expenses: <b>₹${oth}</b></p>
- <p>Net Income: <b>₹${net}</b></p>`;
+ if(dailyChart) dailyChart.destroy();
+ dailyChart=new Chart(document.getElementById("dailyChart"),{
+ type:"line",
+ data:{labels:labels,datasets:[{label:"KG",data:vals}]}
+ });
+
+ let months={};
+ entries.forEach(e=>{
+   let m=e.date.slice(0,7);
+   months[m]=(months[m]||0)+e.kg;
+ });
+
+ if(monthlyChart) monthlyChart.destroy();
+ monthlyChart=new Chart(document.getElementById("monthlyChart"),{
+ type:"bar",
+ data:{
+ labels:Object.keys(months),
+ datasets:[{label:"Monthly KG",data:Object.values(months)}]
+ }
+ });
 }
 
 function exportCSV(){
- let csv="Date,KG,Revenue\n";
- entries.forEach(e=>{
-   csv+=`${e.date},${e.kg},${e.kg*RATE}\n`;
- });
- let blob=new Blob([csv],{type:'text/csv'});
- let a=document.createElement('a');
+ let csv="Date,KG\n";
+ entries.forEach(e=>csv+=`${e.date},${e.kg}\n`);
+ let blob=new Blob([csv],{type:"text/csv"});
+ let a=document.createElement("a");
  a.href=URL.createObjectURL(blob);
- a.download='girni_backup.csv';
+ a.download="girni_backup.csv";
  a.click();
 }
 
+function importCSV(ev){
+ let f=ev.target.files[0];
+ let r=new FileReader();
+ r.onload=()=>{
+  let lines=r.result.trim().split("\n").slice(1);
+  entries=lines.map(l=>{let p=l.split(","); return {date:p[0],kg:+p[1]};});
+  save();
+ };
+ r.readAsText(f);
+}
+
+date.value=new Date().toISOString().split("T")[0];
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}
 render();
 </script>
