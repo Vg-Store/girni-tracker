@@ -1,15 +1,170 @@
-<!doctype html>
-<html><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>गिरणी नोंद</title>
-<link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="styles.css">
+<!DOCTYPE html>
+
+<html lang="mr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>गिरणी नोंद</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
+
 <body>
-<header><img src="assets/logo.png" class="logo"><h1 id="title">गिरणी नोंद</h1><button id="langBtn">EN</button></header>
-<section class="card"><input type="date" id="date"><input type="number" id="kg" placeholder="एकूण किलो"><button id="saveBtn">नोंद जतन करा</button></section>
-<section class="card"><h3>दैनिक किलो ट्रेंड</h3><canvas id="dailyChart"></canvas></section>
-<details><summary>नोंदी</summary><div id="entries"></div></details>
-<details><summary>आयात / निर्यात</summary><button id="exportBtn">CSV Export</button></details>
-<script src="translations.js"></script><script src="app.js"></script>
-</body></html>
+
+<header class="app-header">
+
+  <div class="logo-section">
+    <img src="assets/logo.png" class="logo" alt="Girni Nond">
+    <div>
+      <h1 id="appTitle">गिरणी नोंद</h1>
+      <p id="appSubtitle">तुमची गिरणी, तुमची नोंद</p>
+    </div>
+  </div>
+
+  <button id="langToggle" class="lang-btn">
+    EN
+  </button>
+
+</header>
+
+<section class="dashboard">
+
+  <div class="card">
+    <span id="todayKgLabel">आजचे किलो</span>
+    <h2 id="todayKg">0</h2>
+  </div>
+
+  <div class="card">
+    <span id="todayRevenueLabel">आजचे उत्पन्न</span>
+    <h2 id="todayRevenue">₹0</h2>
+  </div>
+
+  <div class="card">
+    <span id="cycleKgLabel">सायकल किलो</span>
+    <h2 id="cycleKg">0</h2>
+  </div>
+
+  <div class="card">
+    <span id="cycleRevenueLabel">सायकल उत्पन्न</span>
+    <h2 id="cycleRevenue">₹0</h2>
+  </div>
+
+  <div class="card net-card">
+    <span id="netIncomeLabel">निव्वळ नफा</span>
+    <h2 id="netIncome">₹0</h2>
+  </div>
+
+</section>
+
+<section class="entry-card">
+
+  <h3 id="newEntryLabel">नवीन नोंद</h3>
+
+  <input type="date" id="entryDate">
+
+<input
+type="number"
+id="entryKg"
+placeholder="एकूण किलो"
+
+>
+
+  <button id="saveEntryBtn">
+    नोंद जतन करा
+  </button>
+
+</section>
+
+<section class="chart-card">
+
+  <h3 id="dailyTrendLabel">
+    दैनिक किलो ट्रेंड
+  </h3>
+
+<canvas id="dailyChart"></canvas>
+
+</section>
+
+<details class="accordion">
+
+  <summary id="recordsLabel">
+    नोंदी
+  </summary>
+
+  <div id="recordsContainer">
+
+  </div>
+
+</details>
+
+<details class="accordion">
+
+  <summary id="reportLabel">
+    मासिक अहवाल
+  </summary>
+
+  <div class="report-content">
+
+```
+<input
+  type="number"
+  id="electricBill"
+  placeholder="वीज बिल"
+>
+
+<input
+  type="number"
+  id="otherExpense"
+  placeholder="इतर खर्च"
+>
+
+<button id="calculateBtn">
+  अहवाल तयार करा
+</button>
+
+<div id="reportOutput"></div>
+```
+
+  </div>
+
+</details>
+
+<details class="accordion">
+
+  <summary id="backupLabel">
+    आयात / निर्यात
+  </summary>
+
+  <div class="backup-content">
+
+```
+<button id="exportBtn">
+  CSV निर्यात
+</button>
+
+<input
+  type="file"
+  id="importFile"
+>
+```
+
+  </div>
+
+</details>
+
+<script src="translations.js"></script>
+
+<script src="db.js"></script>
+
+<script src="charts.js"></script>
+
+<script src="billing.js"></script>
+
+<script src="app.js"></script>
+
+</body>
+</html>
