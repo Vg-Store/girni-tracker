@@ -1,0 +1,1 @@
+const T={mr:{title:'गिरणी नोंद',save:'नोंद जतन करा'},en:{title:'Girni Nond',save:'Save Entry'}};

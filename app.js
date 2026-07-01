@@ -1,0 +1,1 @@
+let lang='mr';document.getElementById('langBtn').onclick=()=>{lang=lang==='mr'?'en':'mr';title.textContent=T[lang].title;saveBtn.textContent=T[lang].save};saveBtn.onclick=()=>alert('Demo build');
