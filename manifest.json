@@ -1,1 +1,27 @@
-{"name":"गिरणी नोंद","short_name":"गिरणी","display":"standalone","start_url":"./","icons":[{"src":"assets/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"assets/icon-512.png","sizes":"512x512","type":"image/png"}]}
+{
+  "name": "गिरणी नोंद - Girni Nond",
+  "short_name": "Girni Nond",
+  "description": "Daily flour mill KG entry, billing and expense tracker",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f8f3",
+  "theme_color": "#2e7d32",
+  "lang": "mr",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

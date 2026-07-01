@@ -2,14 +2,23 @@
 
 <html lang="mr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>गिरणी नोंद</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css">
+<title>गिरणी नोंद</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta name="theme-color" content="#2e7d32">
+<meta name="description" content="Daily flour mill KG entry, billing and expense tracker">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="styles.css">
+
+<!-- KG Trend chart is hand-drawn on <canvas> in charts.js —
+     no external chart library needed, keeps the app offline-safe -->
 
 </head>
 
@@ -17,152 +26,322 @@
 
 <header class="app-header">
 
-  <div class="logo-section">
-    <img src="assets/logo.png" class="logo" alt="Girni Nond">
-    <div>
-      <h1 id="appTitle">गिरणी नोंद</h1>
-      <p id="appSubtitle">तुमची गिरणी, तुमची नोंद</p>
-    </div>
-  </div>
 
-  <button id="langToggle" class="lang-btn">
-    EN
-  </button>
+<div class="brand">
+
+    <img
+        src="assets/logo.png"
+        alt="Girni Nond"
+        class="logo"
+    >
+
+    <h1 data-i18n="appTitle">गिरणी नोंद</h1>
+
+</div>
+
+<div class="header-actions">
+
+    <select id="languageToggle">
+        <option value="mr">मराठी</option>
+        <option value="en">English</option>
+    </select>
+
+    <button
+        id="themeToggle"
+        class="theme-btn"
+        title="Theme"
+    >
+        🌙
+    </button>
+
+</div>
+
 
 </header>
 
-<section class="dashboard">
+<div id="offlineIndicator" class="offline hidden" data-i18n="offline">
+    Offline Mode
+</div>
 
-  <div class="card">
-    <span id="todayKgLabel">आजचे किलो</span>
-    <h2 id="todayKg">0</h2>
-  </div>
+<main>
 
-  <div class="card">
-    <span id="todayRevenueLabel">आजचे उत्पन्न</span>
-    <h2 id="todayRevenue">₹0</h2>
-  </div>
 
-  <div class="card">
-    <span id="cycleKgLabel">सायकल किलो</span>
-    <h2 id="cycleKg">0</h2>
-  </div>
+<!-- DAILY ENTRY -->
 
-  <div class="card">
-    <span id="cycleRevenueLabel">सायकल उत्पन्न</span>
-    <h2 id="cycleRevenue">₹0</h2>
-  </div>
+<section class="card-section">
 
-  <div class="card net-card">
-    <span id="netIncomeLabel">निव्वळ नफा</span>
-    <h2 id="netIncome">₹0</h2>
-  </div>
+    <div class="section-title" data-i18n="dailyEntry">
+        Daily Entry
+    </div>
+
+    <form id="entryForm">
+
+        <label for="entryKg" data-i18n="totalKg">
+            Total KG
+        </label>
+
+        <input
+            type="number"
+            id="entryKg"
+            min="0"
+            step="0.1"
+            inputmode="decimal"
+            required
+        >
+
+        <label for="entryDate" data-i18n="date">
+            Date
+        </label>
+
+        <input
+            type="date"
+            id="entryDate"
+            required
+        >
+
+        <div class="button-row">
+
+            <button
+                type="submit"
+                id="saveBtn"
+                data-i18n="saveEntry"
+            >
+                Save Entry
+            </button>
+
+            <button
+                type="button"
+                id="undoBtn"
+                data-i18n="undoLast"
+            >
+                Undo Last
+            </button>
+
+        </div>
+
+    </form>
 
 </section>
 
-<section class="entry-card">
+<!-- RECORDS -->
 
-  <h3 id="newEntryLabel">नवीन नोंद</h3>
+<details open class="card-section">
 
-  <input type="date" id="entryDate">
+    <summary data-i18n="records">
+        Records
+    </summary>
 
-<input
-type="number"
-id="entryKg"
-placeholder="एकूण किलो"
+    <div id="recordsContainer">
 
->
+        <div class="empty-state" data-i18n="noRecords">
 
-  <button id="saveEntryBtn">
-    नोंद जतन करा
-  </button>
+            No records yet
 
-</section>
+        </div>
 
-<section class="chart-card">
-
-  <h3 id="dailyTrendLabel">
-    दैनिक किलो ट्रेंड
-  </h3>
-
-<canvas id="dailyChart"></canvas>
-
-</section>
-
-<details class="accordion">
-
-  <summary id="recordsLabel">
-    नोंदी
-  </summary>
-
-  <div id="recordsContainer">
-
-  </div>
+    </div>
 
 </details>
 
-<details class="accordion">
+<!-- KG TREND -->
 
-  <summary id="reportLabel">
-    मासिक अहवाल
-  </summary>
+<details class="card-section" id="chartDetails">
 
-  <div class="report-content">
+    <summary data-i18n="kgTrend">
+        KG Trend
+    </summary>
 
-```
-<input
-  type="number"
-  id="electricBill"
-  placeholder="वीज बिल"
->
+    <div class="chart-container">
 
-<input
-  type="number"
-  id="otherExpense"
-  placeholder="इतर खर्च"
->
+        <canvas id="dailyChart"></canvas>
 
-<button id="calculateBtn">
-  अहवाल तयार करा
-</button>
-
-<div id="reportOutput"></div>
-```
-
-  </div>
+    </div>
 
 </details>
 
-<details class="accordion">
+<!-- BILLING REPORT -->
 
-  <summary id="backupLabel">
-    आयात / निर्यात
-  </summary>
+<details class="card-section">
 
-  <div class="backup-content">
+    <summary data-i18n="billingReports">
+        Billing Reports
+    </summary>
 
-```
-<button id="exportBtn">
-  CSV निर्यात
-</button>
+    <div class="report-container">
 
-<input
-  type="file"
-  id="importFile"
->
-```
+        <div class="report-row">
 
-  </div>
+            <span data-i18n="period">Period</span>
+
+            <strong id="reportPeriod">
+                -
+            </strong>
+
+        </div>
+
+        <div class="report-row">
+
+            <span data-i18n="totalDays">Total Days</span>
+
+            <strong id="reportDays">
+                0
+            </strong>
+
+        </div>
+
+        <div class="report-row">
+
+            <span data-i18n="totalKgLabel">Total KG</span>
+
+            <strong id="reportKg">
+                0
+            </strong>
+
+        </div>
+
+        <div class="report-row">
+
+            <span data-i18n="revenue">Revenue</span>
+
+            <strong id="reportRevenue">
+                ₹0
+            </strong>
+
+        </div>
+
+        <hr>
+
+        <label data-i18n="electricityBill">
+            Electricity Bill
+        </label>
+
+        <input
+            type="number"
+            id="electricityBill"
+            min="0"
+        >
+
+        <label data-i18n="otherExpenses">
+            Other Expenses
+        </label>
+
+        <input
+            type="number"
+            id="otherExpenses"
+            min="0"
+        >
+
+        <button id="saveExpenses" data-i18n="saveExpenses">
+            Save Expenses
+        </button>
+
+        <div class="net-income-card">
+
+            <div class="net-label" data-i18n="netIncome">
+
+                Net Income
+
+            </div>
+
+            <div id="reportNetIncome"
+                 class="net-value">
+
+                ₹0
+
+            </div>
+
+        </div>
+
+    </div>
 
 </details>
+
+<!-- SETTINGS -->
+
+<details class="card-section">
+
+    <summary data-i18n="settings">
+        Settings
+    </summary>
+
+    <div class="settings-container">
+
+        <label for="ratePerKg" data-i18n="ratePerKg">
+            Rate per KG (₹)
+        </label>
+
+        <input
+            type="number"
+            id="ratePerKg"
+            min="0"
+            step="0.1"
+        >
+
+        <label for="billingStartDate" data-i18n="billingStart">
+            Billing Start Date
+        </label>
+
+        <input
+            type="date"
+            id="billingStartDate"
+        >
+
+        <label for="billingEndDate" data-i18n="billingEnd">
+            Billing End Date
+        </label>
+
+        <input
+            type="date"
+            id="billingEndDate"
+        >
+
+        <div class="setting-info">
+
+            <span data-i18n="lastBackup">Last Backup:</span>
+            <span id="lastBackupDate">
+                Never
+            </span>
+
+        </div>
+
+        <button id="backupNowBtn" data-i18n="backupNow">
+            Backup Now
+        </button>
+
+        <button id="exportCsvBtn" data-i18n="exportCsv">
+            Export CSV
+        </button>
+
+        <button id="exportJsonBtn" data-i18n="exportJson">
+            Export JSON
+        </button>
+
+        <input
+            type="file"
+            id="importFile"
+            accept=".csv,.json"
+        >
+
+        <button id="importBtn" data-i18n="importData">
+            Import Data
+        </button>
+
+    </div>
+
+</details>
+
+
+</main>
+
+<div id="toast"></div>
 
 <script src="translations.js"></script>
 
 <script src="db.js"></script>
 
-<script src="charts.js"></script>
-
 <script src="billing.js"></script>
+
+<script src="charts.js"></script>
 
 <script src="app.js"></script>
 
